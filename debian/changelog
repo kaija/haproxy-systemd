@@ -1,0 +1,5 @@
+haproxy-systemd-wrapper (1.4.25-1) trusty; urgency=low
+
+  * Haproxy 1.4 systemd wrapper
+
+ -- Kevin K Chang <kevin_k_chang@trend.com.tw>  Fri, 23 Nov 2015 00:00:00 +0200

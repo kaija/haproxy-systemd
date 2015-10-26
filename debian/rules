@@ -1,0 +1,54 @@
+#!/usr/bin/make -f
+
+#PACKAGE_VERSION=$(shell git rev-parse --short HEAD)
+PACKAGE_VERSION=$(shell cat VERSION)
+#dpkg_buildflags := DEB_BUILD_MAINT_OPTIONS="hardening=+all" dpkg-buildflags
+DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+BUILD_DATE := $(shell dpkg-parsechangelog --show-field Date)
+
+define checkdir
+	test -f Makefile -a -f debian/rules
+endef
+
+clean:
+	$(checkdir)
+	make clean
+	rm -rf debian/haproxy-systemd-wrapper debian/files
+
+binary-indep:
+
+binary-arch: checkroot
+	$(checkdir)
+	rm  -rf debian/haproxy-systemd-wrapper
+	install -m 755 -d debian/haproxy-systemd-wrapper/DEBIAN \
+                 -d debian/haproxy-systemd-wrapper/usr \
+                 -d debian/haproxy-systemd-wrapper/usr/local \
+                 -d debian/haproxy-systemd-wrapper/usr/local/sbin \
+                 -d debian/haproxy-systemd-wrapper/lib \
+                 -d debian/haproxy-systemd-wrapper/lib/systemd \
+                 -d debian/haproxy-systemd-wrapper/lib/systemd/system
+	install -m 644 debian/conffiles debian/haproxy-systemd-wrapper/DEBIAN
+	install -m 644 conf/haproxy.service debian/haproxy-systemd-wrapper/lib/systemd/system/haproxy.service
+	install -m 755 debian/postinst debian/haproxy-systemd-wrapper/DEBIAN
+	install -m 755 debian/postrm debian/haproxy-systemd-wrapper/DEBIAN
+	make
+	install -m 755 haproxy-systemd-wrapper debian/haproxy-systemd-wrapper/usr/local/sbin/haproxy-systemd-wrapper
+	strip -R .note -R .comment debian/haproxy-systemd-wrapper/usr/local/sbin/haproxy-systemd-wrapper
+	cd debian/haproxy-systemd-wrapper && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | LC_ALL=C sort -z | xargs -r0 md5sum > DEBIAN/md5sums
+	dpkg-gencontrol -v$(PACKAGE_VERSION) -T -phaproxy-systemd-wrapper -Pdebian/haproxy-systemd-wrapper
+	find debian/haproxy-systemd-wrapper -depth -newermt '$(BUILD_DATE)' -print0 | xargs -0r touch --no-dereference --date='$(BUILD_DATE)'
+	chown -R root.root debian/haproxy-systemd-wrapper
+	chmod -R g-ws debian/haproxy-systemd-wrapper
+	dpkg --build debian/haproxy-systemd-wrapper ..
+
+
+binary: binary-arch
+
+build:
+build-arch:
+build-indep:
+
+checkroot:
+	test root = "`whoami`"
+
+.PHONY: build clean binary-indep build-arch binary checkroot

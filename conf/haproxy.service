@@ -1,0 +1,13 @@
+[Unit]
+Description=HAProxy Load Balancer
+After=network.target
+
+[Service]
+ExecStartPre=/usr/local/sbin/haproxy -f /etc/haproxy/haproxy.cfg -q -c
+ExecStart=/usr/local/sbin/haproxy-systemd-wrapper -f /etc/haproxy/haproxy.cfg
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop=/bin/kill -USR1 $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

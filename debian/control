@@ -1,0 +1,11 @@
+Source: haproxy-systemd-wrapper
+Section: net
+Priority: optional
+Build-depends:  haproxy
+Maintainer: Kevin K Chang <kevin_k_chang@trend.com.tw>
+
+Package: haproxy-systemd-wrapper
+Architecture: amd64
+Depends:
+Description: This package is build haproxy-systemd-wrapper
+  This package compiled by kevin k chang
